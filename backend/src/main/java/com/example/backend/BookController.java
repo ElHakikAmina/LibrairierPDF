@@ -2,6 +2,7 @@ package com.example.backend;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -11,7 +12,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/books")
@@ -45,7 +48,11 @@ public class BookController {
 
     @GetMapping
     public List<Book> getAllBooks() {
-        return bookRepository.findAll();
+        //return bookRepository.findAll();
+        Sort sortByDescId = Sort.by(Sort.Order.desc("id"));
+
+        // Use the custom sorting in the repository method
+        return bookRepository.findAll(sortByDescId);
     }
 
     @GetMapping("/files/{fileName:.+}")
@@ -91,9 +98,8 @@ public class BookController {
     }
 
 
-
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateBook(@PathVariable Long id, @RequestBody Book updatedBook) {
+    public ResponseEntity<Map<String, String>> updateBook(@PathVariable Long id, @RequestBody Book updatedBook) {
         Book existingBook = bookRepository.findById(id).orElse(null);
         if (existingBook == null) {
             return ResponseEntity.notFound().build();
@@ -104,6 +110,10 @@ public class BookController {
         existingBook.setDescription(updatedBook.getDescription());
         bookRepository.save(existingBook);
 
-        return ResponseEntity.ok("Book updated successfully.");
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Book updated successfully");
+
+        return ResponseEntity.ok(response);
     }
+
 }
